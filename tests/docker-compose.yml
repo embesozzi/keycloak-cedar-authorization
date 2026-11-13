@@ -1,0 +1,44 @@
+# Local demo: Keycloak with the Cedar provider, on its built-in dev database,
+# and a container that runs once to configure the demo realm.
+# Build the provider first (mvn package), or use `make up`.
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:${KC_VERSION:-26.7.0}
+    container_name: keycloak-cedar
+    command:
+      - start-dev
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_HTTP_PORT: 8082
+      KC_HEALTH_ENABLED: 'true'
+      KC_FEATURES: authzen,spiffe
+      KC_LOG_LEVEL: info,com.twogenidentity.keycloak.authorization.cedar:debug
+      # The cedar-java native library: aarch64 (Apple Silicon, ARM64) or x86_64 (Intel/AMD).
+      CEDAR_JAVA_FFI_LIB: /opt/cedar/linux/${CEDAR_ARCH:-aarch64}/libcedar_java_ffi.so
+    volumes:
+      - ../target/keycloak-cedar-authorization.jar:/opt/keycloak/providers/keycloak-cedar-authorization.jar
+      - ../target/native/jne/linux:/opt/cedar/linux
+    healthcheck:
+      test: ["CMD", "/opt/keycloak/bin/kcadm.sh", "config", "credentials", "--server", "http://localhost:8082", "--realm", "master", "--user", "admin", "--password", "admin"]
+      interval: 5s
+      timeout: 2s
+      retries: 30
+    ports:
+      - 8082:8082
+
+  keycloak-bootstrap:
+    image: quay.io/keycloak/keycloak:${KC_VERSION:-26.7.0}
+    container_name: keycloak-cedar-bootstrap
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    restart: "no"
+    entrypoint: ["/bin/bash", "/opt/bootstrap/bootstrap.sh"]
+    environment:
+      KEYCLOAK_URL: http://keycloak:8082
+      KEYCLOAK_USER: admin
+      KEYCLOAK_PASSWORD: admin
+    volumes:
+      - ./keycloak/bootstrap.sh:/opt/bootstrap/bootstrap.sh:ro
+      - ./policies:/opt/bootstrap/policies:ro

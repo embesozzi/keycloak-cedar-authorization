@@ -1,0 +1,22 @@
+// Cedar schema of resource server `mcp-server`, the gateway in front of an MCP server.
+// Delivered as the client attribute `cedar.schema`; merged with the Keycloak namespace of the provider.
+namespace Mcp {
+  // Keycloak resources of type "Tool", one per MCP tool, keyed by tool name: Mcp::Tool::"get_customer".
+  // Tags carry the resource's attributes.
+  entity Tool = {
+    name: String,
+  } tags Set<String>;
+
+  // AuthZEN `context` sent by the gateway.
+  type RequestContext = {
+    agent?: String,          // calling agent, e.g. the token's azp
+    scope?: Set<String>,     // token scopes, e.g. ["mcp:tools"]
+  };
+
+  // The Keycloak authorization scope `call`: calling a tool (MCP tools/call).
+  action call appliesTo {
+    principal: [Keycloak::User, Keycloak::Client],
+    resource: [Tool],
+    context: RequestContext,
+  };
+}

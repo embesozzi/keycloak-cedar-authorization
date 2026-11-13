@@ -1,0 +1,36 @@
+// Built-in Cedar types resolved by Keycloak.
+//
+// These types are filled from Keycloak's stores by CedarPrincipalResolver, never from
+// the AuthZEN request. Facts only the PEP knows (how the user logged in, the token's
+// scope/audience) are not part of the principal: a resource server declares the ones it
+// accepts in its actions' `context` type, and the PEP sends them in the AuthZEN `context`.
+//
+// A resource server's own schema (client attribute `cedar.schema`) is merged with this file
+// and may reference these types (Keycloak::User, ...) but must not declare anything in the
+// Keycloak namespace.
+namespace Keycloak {
+  // Realm role `name`, or client role `clientId/name`.
+  entity Role;
+
+  // Group path, e.g. "/engineering/agents". A user is a member of every ancestor of its
+  // direct groups, so `principal in Keycloak::Group::"/engineering"` matches subgroups too.
+  entity Group in [Group];
+
+  // Tags: the user attributes enabled with --spi-policy--cedar--user-attributes,
+  // e.g. `principal.hasTag("department") && principal.getTag("department").contains("eng")`.
+  entity User in [Role, Group] = {
+    username: String,
+    email?: String,
+    emailVerified: Bool,
+    enabled: Bool,
+    roles: Set<String>,
+    groups: Set<String>,
+  } tags Set<String>;
+
+  // A client; a service account is resolved to its client.
+  entity Client in [Role] = {
+    clientId: String,
+    enabled: Bool,
+    roles: Set<String>,
+  };
+}

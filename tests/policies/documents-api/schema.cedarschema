@@ -1,0 +1,31 @@
+// Cedar schema of resource server `documents-api`.
+//
+// Delivered as the client attribute `cedar.schema` (see tests/keycloak/bootstrap.sh) and merged
+// with the built-in Keycloak namespace (Keycloak::User, Keycloak::Client, Keycloak::Role,
+// Keycloak::Group). Every Cedar policy of this resource server is validated against it.
+namespace Documents {
+  // Keycloak resources of type "Document", keyed by resource name: Documents::Document::"document-1".
+  // `name` and `type` are filled from the resource; tags carry the resource's attributes.
+  entity Document = {
+    name: String,
+    type: String,
+  } tags Set<String>;
+
+  // AuthZEN `context`: only the keys declared here reach Cedar, with these types.
+  // Facts only the PEP knows (how the user logged in, what the token allows) belong here;
+  // send Set<String> values as JSON arrays.
+  type RequestContext = {
+    agent?: String,          // calling agent, e.g. the token's azp
+    acr?: String,            // authentication context class, e.g. "inherence"
+    amr?: Set<String>,       // authentication methods, e.g. ["passkeys", "mfa"]
+    scope?: Set<String>,     // token scopes, e.g. ["openid", "docs:read"]
+    aud?: Set<String>,       // token audiences
+  };
+
+  // One action per Keycloak authorization scope.
+  action read, write appliesTo {
+    principal: [Keycloak::User, Keycloak::Client],
+    resource: [Document],
+    context: RequestContext,
+  };
+}
