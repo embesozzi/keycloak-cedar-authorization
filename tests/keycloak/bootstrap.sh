@@ -11,7 +11,7 @@ POLICIES=${POLICIES_DIR:-/opt/bootstrap/policies}
 REALM=demo
 PLANNER="spiffe://example.org/ns/agents/sa/planner-agent"
 
-# create_client <clientId> <secret> → prints the client's internal id
+# create_client <clientId> <secret> prints the client's internal id
 create_client() {
   $KCADM create clients -r "$REALM" -i -s "clientId=$1" -s "secret=$2" -s enabled=true \
     -s serviceAccountsEnabled=true -s authorizationServicesEnabled=true
@@ -53,15 +53,14 @@ log "Authenticating to $SERVER"
 $KCADM config credentials --server "$SERVER" --realm master \
   --user "${KEYCLOAK_USER:-admin}" --password "${KEYCLOAK_PASSWORD:-admin}"
 
-# Local demo over plain HTTP: requests from the host reach Keycloak through Docker's network,
-# which Keycloak's default (sslRequired=external) treats as external and refuses without HTTPS.
 $KCADM update realms/master -s sslRequired=NONE
 
-log "Creating realm $REALM, roles document-reader and document-writer, users alice and bob"
+log "Creating realm $REALM, roles document-reader, document-writer and document-editor, users alice, bob and carol"
 $KCADM create realms -s "realm=$REALM" -s enabled=true -s sslRequired=NONE
 $KCADM create roles -r "$REALM" -s name=document-reader
 $KCADM create roles -r "$REALM" -s name=document-writer
-for user in alice:document-reader bob:document-writer; do
+$KCADM create roles -r "$REALM" -s name=document-editor
+for user in alice:document-reader bob:document-writer carol:document-editor; do
   name=${user%%:*}; role=${user#*:}
   $KCADM create users -r "$REALM" -s "username=$name" -s "email=$name@example.com" -s emailVerified=true -s enabled=true
   $KCADM set-password -r "$REALM" --username "$name" --new-password "$name"
@@ -74,8 +73,9 @@ create_document "$DOCS"
 set_schema "$DOCS" "$POLICIES/documents-api/schema.cedarschema"
 create_policy "$DOCS" "$POLICIES/documents-api/documents.cedar"
 create_policy "$DOCS" "$POLICIES/documents-api/planner-agent-read.cedar"
+create_policy "$DOCS" "$POLICIES/documents-api/document-write-passkey.cedar"
 create_permission "$DOCS" read-document-permission '["document-1"]' read '["documents","planner-agent-read"]'
-create_permission "$DOCS" write-document-permission '["document-1"]' write '["documents"]'
+create_permission "$DOCS" write-document-permission '["document-1"]' write '["documents","document-write-passkey"]'
 
 log "Creating the AI agent $PLANNER (a client with a service account), with the role support-agent"
 AGENT=$($KCADM create clients -r "$REALM" -i -s "clientId=$PLANNER" -s secret=planner-agent-secret -s enabled=true -s serviceAccountsEnabled=true)

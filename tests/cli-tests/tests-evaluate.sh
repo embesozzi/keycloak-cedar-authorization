@@ -81,6 +81,12 @@ check true  "alice reads document-1 with scope and aud in the context" "$DOCS_TO
 check true  "alice reads document-1 with acr and amr in the context" "$DOCS_TOKEN" \
   "$(request user alice read '{"acr": "inherence", "amr": ["passkeys", "mfa"]}')"
 
+echo "== documents-api, authentication context (tests/policies/documents-api/document-write-passkey.cedar)"
+check true  "carol (document-editor) writes document-1 after a passkey login" "$DOCS_TOKEN" \
+  "$(request user carol write '{"acr": "inherence", "amr": ["passkeys", "mfa"]}')"
+check false "carol (document-editor) writes document-1 after a password login" "$DOCS_TOKEN" \
+  "$(request user carol write '{"acr": "inherence", "amr": ["pwd"]}')"
+
 echo "== documents-api, AI agent (tests/policies/documents-api/planner-agent-read.cedar)"
 check true  "planner-agent reads document-1"  "$DOCS_TOKEN" "$(request user "$PLANNER_SUB" read)"
 check false "planner-agent writes document-1" "$DOCS_TOKEN" "$(request user "$PLANNER_SUB" write)"

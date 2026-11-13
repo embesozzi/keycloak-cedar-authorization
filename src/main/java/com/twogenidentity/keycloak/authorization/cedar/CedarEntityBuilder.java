@@ -78,8 +78,6 @@ class CedarEntityBuilder {
         return new Entity(uid, attrs, parents, tags);
     }
 
-    // ---------------------------------------------------------------- action
-
     /** {@code <namespace>::Action::"<scope>"}; the scope must be declared as an action. */
     static EntityUID actionUid(CedarSchemaModel model, String action) throws CedarException {
         if (model.actionContext(action).isEmpty()) {
@@ -87,8 +85,6 @@ class CedarEntityBuilder {
         }
         return euid(model.qualify("Action"), action);
     }
-
-    // ---------------------------------------------------------------- resource
 
     /**
      * A Keycloak resource as {@code <namespace>::<resource type>::"<resource name>"}.
