@@ -2,7 +2,7 @@
 
 A [Keycloak](https://www.keycloak.org/) extension that integrates [Cedar](https://www.cedarpolicy.com/) as a policy type in Keycloak Authorization Services, enabling Keycloak's [AuthZEN](https://openid.net/specs/authorization-api-1_0.html) endpoint to evaluate authorization requests for users and AI agents using Cedar policies.
 
-For the background and design, see [Keycloak Cedar Policy Engine](https://twogenidentity.com/research/keycloak-cedar-policy-engine/), a research article by TwoGenIdentity.
+For the background and design, see [Keycloak Cedar Policy Engine](https://twogenidentity.com/research/keycloak-cedar-policy-engine/), a research article by TwoGenIdentity, along with the reference article [Cedar Policy Engine in Keycloak for FGA for Users & AI Agents](https://embesozzi.github.io/posts/martin-besozzi/keycloak-cedar-authorization-authzen/).
 
 ## Overview
 
