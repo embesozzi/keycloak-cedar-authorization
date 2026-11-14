@@ -122,10 +122,12 @@ POST /admin/realms/{realm}/clients/{client-uuid}/authz/resource-server/policy/ce
 | cedar-java (bundled) | 4.10.0 |
 | Java | 17 |
 
-1. Build the provider: `mvn package`.
-2. Copy `target/keycloak-cedar-authorization.jar` to `/opt/keycloak/providers/`.
-3. Make the native library available (extracted to `target/native/jne/linux/<arch>/libcedar_java_ffi.so`) and set `CEDAR_JAVA_FFI_LIB` to its path.
+1. Download from the [latest release](https://github.com/embesozzi/keycloak-cedar-authorization/releases/latest) the provider jar and the native library for your platform (`libcedar_java_ffi-linux-x86_64.so` or `libcedar_java_ffi-linux-aarch64.so`), and verify them with `sha256sum -c SHA256SUMS --ignore-missing`.
+2. Copy `keycloak-cedar-authorization-<version>.jar` to `/opt/keycloak/providers/`.
+3. Copy the native library into the image and set `CEDAR_JAVA_FFI_LIB` to its path.
 4. Enable the AuthZEN feature: `--features=authzen`.
+
+To build from source instead, run `mvn package`: the jar is `target/keycloak-cedar-authorization.jar` and the native libraries are in `target/native/jne/linux/<arch>/`.
 
 For a working setup, see the demo in [`tests/README.md`](tests/README.md): its Docker Compose file shows the provider jar, the native library and the features in place.
 
