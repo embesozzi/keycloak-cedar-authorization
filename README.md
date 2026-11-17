@@ -65,6 +65,16 @@ sequenceDiagram
 
 ## Configuration
 
+### In Keycloak
+
+Keycloak's AuthZEN endpoint evaluates a request only when these exist in the resource server:
+
+1. A **resource** with the requested name and type (`document-1`, type `Document`).
+2. A **scope** with the requested action name (`read`).
+3. A **scope permission** that links them to a Cedar policy.
+
+Without them, the decision is `false` before any Cedar policy runs. See [`tests/bootstrap.sh`](tests/bootstrap.sh).
+
 ### Resource Server Schema
 
 Each resource server describes its own resources in a [Cedar schema](https://docs.cedarpolicy.com/schema/human-readable-schema.html), stored in the client attribute `cedar.schema`. Names in the schema must match names in Keycloak:
@@ -107,6 +117,11 @@ POST /admin/realms/{realm}/clients/{client-uuid}/authz/resource-server/policy/ce
 | `name` | Keycloak policy name; decision logs refer to statements as `<name>#<@id>` |
 | `code` | Cedar policy statements; templates are not supported |
 
+- One resource goes in the policy scope (`resource == Mcp::Tool::"delete_customer"`); a list goes in the
+  condition (`resource in [...]`). Cedar does not accept a list in the scope.
+- To group resources without listing them, give them an attribute such as `category` and test it as a tag:
+  `resource.getTag("category").contains("customer")`.
+
 ### Provider Options
 
 | Option | Default | Description |
@@ -121,6 +136,7 @@ POST /admin/realms/{realm}/clients/{client-uuid}/authz/resource-server/policy/ce
 | Keycloak | 26.7.0 |
 | cedar-java (bundled) | 4.10.0 |
 | Java | 17 |
+| Platform | Linux (x86_64, aarch64) |
 
 1. Download from the [latest release](https://github.com/embesozzi/keycloak-cedar-authorization/releases/latest) the provider jar and the native library for your platform (`libcedar_java_ffi-linux-x86_64.so` or `libcedar_java_ffi-linux-aarch64.so`), and verify them with `sha256sum -c SHA256SUMS --ignore-missing`.
 2. Copy `keycloak-cedar-authorization-<version>.jar` to `/opt/keycloak/providers/`.
@@ -170,7 +186,7 @@ make policies-check
 ```sh
 make test            # unit tests
 make policies-check  # Cedar CLI format check and strict validation
-make test-e2e        # start the demo, run the AuthZEN checks, stop it
+make test-e2e        # start the demo and run the AuthZEN checks (make down to stop it)
 ```
 
 ## Considerations

@@ -40,5 +40,5 @@ services:
       KEYCLOAK_USER: admin
       KEYCLOAK_PASSWORD: admin
     volumes:
-      - ./keycloak/bootstrap.sh:/opt/bootstrap/bootstrap.sh:ro
+      - ./bootstrap.sh:/opt/bootstrap/bootstrap.sh:ro
       - ./policies:/opt/bootstrap/policies:ro

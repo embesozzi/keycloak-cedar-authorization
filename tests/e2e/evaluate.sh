@@ -1,15 +1,6 @@
 #!/usr/bin/env bash
-# End-to-end checks of the Cedar policies through Keycloak's AuthZEN evaluation endpoint.
-# Run against a running stack (make up), or with make test-e2e. Exits with 1 if any decision is not the expected one.
-#
-# - The principal (roles, groups, clientId, ...) is resolved from Keycloak; subject.properties is ignored.
-# - Facts only the PEP knows (acr, amr, scope, aud, agent) go in `context`; only the keys declared
-#   in the resource server's schema reach Cedar (tests/policies/documents-api/schema.cedarschema).
-# - The resource server is the client of the caller's token (its `azp`).
-# - The AI agent is sent as the `sub` of its own token (its service account user), with subject type
-#   `user`: Keycloak only accepts a subject of type `client` when it is the caller itself.
-#
-# The client secrets are the demo values set by tests/keycloak/bootstrap.sh.
+# AuthZEN checks of the use cases in tests/README.md. Needs a running demo (make up).
+# Exits with 1 if any decision is not the expected one.
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -18,8 +9,8 @@ REALM=${REALM:-demo}
 EVALUATION_URL="$KC_URL/realms/$REALM/authzen/access/v1/evaluation"
 PLANNER="spiffe://example.org/ns/agents/sa/planner-agent"
 
-DOCS_TOKEN=$(./get-at.sh documents-api documents-api-secret)
-MCP_TOKEN=$(./get-at.sh mcp-server mcp-server-secret)
+DOCS_TOKEN=$(./token.sh documents-api documents-api-secret)
+MCP_TOKEN=$(./token.sh mcp-server mcp-server-secret)
 
 # sub <access token>: the `sub` claim, as a PEP reads it from the verified token
 sub() {
@@ -27,7 +18,7 @@ sub() {
 }
 
 # The agent authenticates with client credentials; the `sub` of its token is its service account user.
-PLANNER_SUB=$(sub "$(./get-at.sh "$PLANNER" planner-agent-secret)")
+PLANNER_SUB=$(sub "$(./token.sh "$PLANNER" planner-agent-secret)")
 
 passed=0
 failed=0

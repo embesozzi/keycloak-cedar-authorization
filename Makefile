@@ -32,4 +32,4 @@ test-e2e: up test-e2e-run
 
 # End-to-end AuthZEN checks against a running stack
 test-e2e-run:
-	tests/cli-tests/tests-evaluate.sh
+	tests/e2e/evaluate.sh

@@ -1,6 +1,6 @@
 // Cedar schema of resource server `documents-api`.
 //
-// Delivered as the client attribute `cedar.schema` (see tests/keycloak/bootstrap.sh) and merged
+// Delivered as the client attribute `cedar.schema` (see tests/bootstrap.sh) and merged
 // with the built-in Keycloak namespace (Keycloak::User, Keycloak::Client, Keycloak::Role,
 // Keycloak::Group). Every Cedar policy of this resource server is validated against it.
 namespace Documents {
